@@ -1,7 +1,5 @@
 <?php
 
-#error_reporting(0);
-$community= 'h@S&cshfiw';
 
 function mac_address_dec2hex($macAddress){
         $macDecimalArr = explode(".", $macAddress);
