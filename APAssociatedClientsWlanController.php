@@ -1,5 +1,8 @@
 <?php
 
+#error_reporting(0);
+$community= 'h@S&cshfiw';
+
 function mac_address_dec2hex($macAddress){
         $macDecimalArr = explode(".", $macAddress);
 
@@ -12,9 +15,10 @@ function mac_address_dec2hex($macAddress){
         return $mac_hex;
 }
 
-function ap_clients_wlan_controller($ip_wlan_controller){ 
-        $community       = '***********';
-        $OID             = ".1.3.6.1.4.1.14823.2.2.1.5.2.1.5.1.7"; #wlanAPRadioNumAssociatedClients
+function ap_clients_aruba_wlan_controller($ip_wlan_controller, $community="public"){ 
+        $APNumCli = array();;
+        #wlanAPRadioNumAssociatedClients
+        $OID             = ".1.3.6.1.4.1.14823.2.2.1.5.2.1.5.1.7"; 
 
         $walk            = snmpwalkoid($ip_wlan_controller, $community, $OID);
         
@@ -25,16 +29,28 @@ function ap_clients_wlan_controller($ip_wlan_controller){
                 $macAddress = mac_address_dec2hex($macDecimal);
 
                 if (array_key_exists($macAddress, $APNumCli)){
-                        $APNumCli[$macAddress] = $APNumCli[$macAddress] + $numCli;
+                        $APNumCli[$macAddress] += $numCli;
 
                 }else{
-                        $APNumCli[$macAddress] = $numCli;
+                        $APNumCli[$macAddress]  = $numCli;
 
                 }
             #echo "$macAddress --> $numCli"
         }
         return $APNumCli;
 }
-$APNumCli = ap_clients_wlan_controller($argv[1]);
-var_dump($APNumCli);
+
+function all_aruba_controllers($community="public"){
+        for($i=1; $i < 11; $i++){
+                $ipController=  "10.253.0.$i";
+                $sysName     = @snmpget($ipController, $community, ".1.3.6.1.2.1.1.5.0");
+                if($sysName == NULL){
+                        continue;
+                }
+                $cli[$ipController] = ap_clients_aruba_wlan_controller($ipController, $community);
+
+        }        
+        var_dump($cli);
+}
+all_aruba_controllers($community);
 ?>
